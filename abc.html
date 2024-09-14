@@ -1,41 +1,58 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Railway Station AR Navigation</title>
+    <title>Railway AR Navigation</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.6.1/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.js"></script>
   </head>
+
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
-      <!-- Ticket Counter Marker -->
-      <a-marker preset="hiro">
+    <a-scene embedded arjs="sourceType: webcam;">
+
+      <!-- Marker for ticket counter -->
+      <a-marker id="ticket_counter_marker" preset="hiro">
         <a-box position="0 0.5 0" color="yellow"></a-box>
         <a-text value="Ticket Counter" position="0 1 0" scale="2 2 2"></a-text>
+        <a-entity id="arrow-to-platform" geometry="primitive: cone; radiusBottom: 0.2; radiusTop: 0.05; height: 0.5"
+                  material="color: green" position="0 0.5 0" rotation="0 0 0"></a-entity>
       </a-marker>
 
-      <!-- Restroom Marker -->
-      <a-marker preset="kanji">
+      <!-- Marker for restroom -->
+      <a-marker id="restroom_marker" preset="kanji">
         <a-box position="0 0.5 0" color="blue"></a-box>
         <a-text value="Restroom" position="0 1 0" scale="2 2 2"></a-text>
+        <a-entity id="arrow-to-platform-restroom" geometry="primitive: cone; radiusBottom: 0.2; radiusTop: 0.05; height: 0.5"
+                  material="color: red" position="0 0.5 0" rotation="0 90 0"></a-entity>
       </a-marker>
 
-      <!-- Platform Marker -->
-      <a-marker preset="pattern" url="platform_marker.patt">
+      <!-- Marker for platform -->
+      <a-marker id="platform_marker" preset="pattern" url="platform_marker.patt">
         <a-box position="0 0.5 0" color="green"></a-box>
         <a-text value="Platform 3" position="0 1 0" scale="2 2 2"></a-text>
       </a-marker>
-      
+
       <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- Optional: Voice Navigation -->
     <script>
-      const speech = new SpeechSynthesisUtterance();
-      speech.lang = "en-US";
+      // Dynamic routing logic
+      const obstacleDetected = false; // Set this to true when an obstacle is detected
 
-      document.querySelector('a-marker').addEventListener('markerFound', () => {
-        speech.text = "You are at the Ticket Counter. Proceed left for Platform 3.";
-        window.speechSynthesis.speak(speech);
+      document.querySelector('#ticket_counter_marker').addEventListener('markerFound', () => {
+        if (obstacleDetected) {
+          // Switch to an alternate route when obstacle is detected
+          document.getElementById('arrow-to-platform').setAttribute('rotation', '0 45 0');
+        } else {
+          // Normal path towards the platform
+          document.getElementById('arrow-to-platform').setAttribute('rotation', '0 0 0');
+        }
+      });
+
+      // Restroom route adjustment if user takes the restroom route
+      document.querySelector('#restroom_marker').addEventListener('markerFound', () => {
+        if (!obstacleDetected) {
+          document.getElementById('arrow-to-platform-restroom').setAttribute('rotation', '0 90 0');
+        }
       });
     </script>
   </body>
